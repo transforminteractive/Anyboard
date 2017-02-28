@@ -1,0 +1,826 @@
+{
+   "$schema":"http://json-schema.org/draft-04/schema#",
+   "type":"object",
+   "title":"anyBoard custom config",
+   "description":"JSON schema for anyBoard custom configuration file",
+   "properties":{
+      "name":{
+         "type":"string",
+         "title":"Name of current configuration",
+         "description":"Name is displayed on the homescreen."
+      },
+      "sources":{
+         "type":"array",
+         "title":"Data sources",
+         "description":"List of data sources",
+         "items":{
+            "type":"object",
+            "title":"Data source",
+            "description":"Data sources defines common authentication policy for its endpoints.",
+            "properties":{
+               "auth":{
+                  "title":"Authentication type.",
+                  "description":"Authentication type of data source, applying for its endpoints. None and Basic are supported, Oauth2 comming next. For Basic, login and password will be required to set in app.",
+                  "default":"none",
+                  "enum":[
+                     "none",
+                     "basic"
+                  ]
+               },
+               "endpoints":{
+                  "type":"array",
+                  "title":"Endpoints",
+                  "description":"List of endpoints.",
+                  "items":{
+                     "type":"object",
+                     "title":"Endpoint",
+                     "description":"Endpoint defines url and other parameters for loading data for widgets.",
+                     "properties":{
+                        "id":{
+                           "type":"string",
+                           "title":"Endpoint ID",
+                           "description":"ID for identifying endpoint in configuration."
+                        },
+                        "url":{
+                           "type":"string",
+                           "minLength":1,
+                           "title":"Endpoint URL",
+                           "description":"URL for loading data for widgets."
+                        },
+                        "refresh":{
+                           "type":"integer",
+                           "minimum":1,
+                           "title":"Refresh interval",
+                           "description":"Time in seconds between endpoint URL calls.",
+                           "default":60
+                        },
+                        "language":{
+                           "type":"string",
+                           "title":"Request language",
+                           "description":"Request to endpoint URL will be made with this language code as Accept-Language. Default is system language."
+                        }
+                     },
+                     "required":[
+                        "id",
+                        "url"
+                     ]
+                  }
+               }
+            },
+            "required":[
+               "endpoints"
+            ]
+         }
+      },
+      "dashboards":{
+         "type":"array",
+         "title":"Dashboards",
+         "description":"List of dashboards to show in app.",
+         "items":{
+            "type":"object",
+            "title":"Dashboard",
+            "description":"Set of widgets to display on one screen",
+            "properties":{
+               "name":{
+                  "type":"string",
+                  "minLength":1,
+                  "title":"Dashboard name",
+                  "description":"Dashboard name will be displayed in grid on the homescreen."
+               },
+               "color":{
+                  "type":"string",
+                  "title":"Dashboard color",
+                  "description":"Color for dashboard in grid on the homescreen. Build-in pallete: active, success, warning, danger, fuzy, neutral, info. Or HEX formats #RRGGBB or #AARRGGBB.",
+                  "default":"#555555"
+               },
+               "background":{
+                  "type":"string",
+                  "title":"Dashboard background",
+                  "description":"Background color for dashboard in HEX format #RRGGBB.",
+                  "default":"#21252B"
+               },
+               "cols":{
+                  "type":"integer",
+                  "minimum":1,
+                  "title":"Columns",
+                  "description":"Number of columns in grid for layouting widgets in dashboard.",
+                  "default":6
+               },
+               "rows":{
+                  "type":"integer",
+                  "minimum":1,
+                  "title":"Rows",
+                  "description":"Number of rows in grid for layouting widgets in dashboard.",
+                  "default":6
+               },
+               "source":{
+                  "type":"object",
+                  "title":"Source",
+                  "description":"General source for loading data to all widgets in dashboard or performing actions.",
+                  "properties":{
+                     "endpoint":{
+                        "type":"string",
+                        "minLength":1,
+                        "title":"Endpoint ID",
+                        "description":"ID of endpoint defined in Data sources config to be used for loading data to widgets or performing actions."
+                     },
+                     "refresh":{
+                        "type":"integer",
+                        "minimum":1,
+                        "title":"Refresh interval",
+                        "description":"Time in seconds between endpoint URL calls. Overrides refresh interval defined in Data sources config.",
+                        "default":60
+                     },
+                     "mapping":{
+                        "type":"object",
+                        "title":"Mapping",
+                        "description":"Mapping from JSON loaded from endpoint to widget config. Dictionary, where 'key' is widget config and 'value' is path to value in loaded JSON. See examples.",
+                        "additionalProperties":{
+                           "type":"string",
+                           "title":"Mapping path.",
+                           "description":"Path to value in JSON. See examples."
+                        }
+                     }
+                  },
+                  "required":[
+                     "endpoint"
+                  ]
+               },
+               "actions":{
+                  "type":"object",
+                  "title":"Dashboard actions",
+                  "description":"Actions allow to play alert sound and invoke dashboard by time or by condition from data.",
+                  "properties":{
+                     "sound":{
+                        "type":"string",
+                        "minLength":1,
+                        "title":"Sound condition",
+                        "description":"Logical condition when to play alert sound, if it is displayed. E.g. 'data.alertCount > 5'. See examples."
+                     },
+                     "invoke":{
+                        "type":"string",
+                        "minLength":1,
+                        "title":"Invoke condition",
+                        "description":"Logical condition when to invoke dashboard, if it is not displayed. E.g. 'data.alertCount > 5'. See examples."
+                     },
+                     "invokeTime":{
+                        "type":"string",
+                        "minLength":1,
+                        "title":"Invoke CRON",
+                        "description":"CRON expression for time, when to invoke dashboard, if it is not displayed. See examples and http://www.cronmaker.com/."
+                     }
+                  }
+               },
+               "widgets":{
+                  "type":"array",
+                  "title":"Widgets",
+                  "description":"List of widgets",
+                  "minItems":1,
+                  "items":{
+                     "type":"object",
+                     "title":"Widget",
+                     "description":"An explanation about the purpose of this instance.",
+                     "properties":{
+                        "id":{
+                           "type":"string",
+                           "minLength":1,
+                           "title":"ID",
+                           "description":"ID of widget for matching with data from data source."
+                        },
+                        "type":{
+                           "title":"Type",
+                           "description":"Type of widget. By default, it is infered.",
+                           "enum":[
+                              "basic",
+                              "time",
+                              "table",
+                              "minitable",
+                              "chart",
+                              "image",
+                              "none"
+                           ]
+                        },
+                        "width":{
+                           "type":"integer",
+                           "minimum":1,
+                           "title":"Width",
+                           "description":"Number of columns in grid, that widget takes.",
+                           "default":1
+                        },
+                        "height":{
+                           "type":"integer",
+                           "minimum":1,
+                           "title":"Height",
+                           "description":"Number of rows in grid, that widget takes.",
+                           "default":1
+                        },
+                        "position":{
+                           "type":"integer",
+                           "minimum":1,
+                           "title":"Position",
+                           "description":"Order of widget in widgets of this dashboard."
+                        },
+                        "background":{
+                           "type":"string",
+                           "title":"Background",
+                           "description":"Default background for widget, if it is not overridden by config.",
+                           "default":"#4D828287"
+                        },
+                        "source":{
+                           "type":"object",
+                           "title":"Source",
+                           "description":"Source for loading data to widget.",
+                           "properties":{
+                              "endpoint":{
+                                 "type":"string",
+                                 "minLength":1,
+                                 "title":"Endpoint ID",
+                                 "description":"ID of endpoint defined in Data sources config to be used for loading data to widgets or performing actions. If not set, dashboard endpoint is used."
+                              },
+                              "refresh":{
+                                 "type":"integer",
+                                 "minimum":1,
+                                 "title":"Refresh interval",
+                                 "description":"Time in seconds between endpoint URL calls. Overrides refresh interval defined in Data sources config.",
+                                 "default":60
+                              },
+                              "mapping":{
+                                 "type":"object",
+                                 "title":"Mapping",
+                                 "description":"Mapping from JSON loaded from endpoint to widget config. Dictionary, where 'key' is widget config and 'value' is path to value in loaded JSON. See examples.",
+                                 "additionalProperties":{
+                                    "type":"string",
+                                    "title":"Mapping path.",
+                                    "description":"Path to value in JSON. See examples."
+                                 }
+                              }
+                           }
+                        },
+                        "basic":{
+                           "type":"object",
+                           "title":"Basic widget configuration.",
+                           "description":"Object with properties for Basic widget type.",
+                           "properties":{
+                              "title":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Title",
+                                 "description":"Text above main text."
+                              },
+                              "subtitle":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Subtitle",
+                                 "description":"Text bellow main text."
+                              },
+                              "value":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Value",
+                                 "description":"Main text in center of widget."
+                              },
+                              "unit":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Unit",
+                                 "description":"Text on right from Value."
+                              },
+                              "pulse":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Pulsate",
+                                 "description":"Expression, when to pulsate widget (e.g. in case of alert; 'value > 5' or 'true'...). See examples."
+                              },
+                              "indicator":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Indicator color",
+                                 "description":"Color of widget's indicator, colored line on the bottom of widget. Build-in pallete: active, success, warning, danger, fuzy, neutral, info. Or HEX formats #RRGGBB or #AARRGGBB."
+                              },
+                              "progress":{
+                                 "type":[
+                                    "number",
+                                    "null"
+                                 ],
+                                 "title":"Progress",
+                                 "description":"Progress in percent. Show line on the bottom of widget."
+                              },
+                              "color":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Color",
+                                 "description":"Color of widget text. Build-in pallete: active, success, warning, danger, fuzy, neutral, info. Or HEX formats #RRGGBB or #AARRGGBB."
+                              },
+                              "background":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Background",
+                                 "description":"Background color of widget in HEX format #RRGGBB."
+                              }
+                           }
+                        },
+                        "time":{
+                           "type":"object",
+                           "title":"Time widget configuration.",
+                           "description":"Object with properties for Time widget type.",
+                           "properties":{
+                              "title":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Title",
+                                 "description":"Text above main text. Default value is actual date. Use 'time' string to show actual time."
+                              },
+                              "subtitle":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Subtitle",
+                                 "description":"Text bellow main text. Default value is actual time. Use 'date' string to show actual date."
+                              },
+                              "value":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Value",
+                                 "description":"Main text in center of widget. Use 'date' string to show actual date, or use 'time' string to show actual time."
+                              },
+                              "indicator":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Indicator color",
+                                 "description":"Color of widget's indicator, colored line on the bottom of widget. Build-in pallete: active, success, warning, danger, fuzy, neutral, info. Or HEX formats #RRGGBB or #AARRGGBB."
+                              },
+                              "background":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Background",
+                                 "description":"Background color of widget in HEX format #RRGGBB."
+                              }
+                           }
+                        },
+                        "image":{
+                           "type":"object",
+                           "title":"Image widget configuration.",
+                           "description":"Object with properties for Image widget type.",
+                           "properties":{
+                              "url":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Url",
+                                 "description":"URL of image to show."
+                              },
+                              "pulse":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Pulsate",
+                                 "description":"Expression, when to pulsate widget (e.g. in case of alert; 'value > 5' or 'true'...). See examples."
+                              },
+                              "background":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Background",
+                                 "description":"Background color of widget in HEX format #RRGGBB."
+                              }
+                           }
+                        },
+                        "table":{
+                           "type":"object",
+                           "title":"Table widget configuration.",
+                           "description":"Object with properties for Table widget type.",
+                           "properties":{
+                              "title":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Title",
+                                 "description":"Chart title"
+                              },
+                              "columns":{
+                                 "type":"array",
+                                 "title":"Table Columns",
+                                 "description":"Columns definition.",
+                                 "items":{
+                                    "type":"object",
+                                    "title":"Column",
+                                    "description":"Column definition.",
+                                    "properties":{
+                                       "id":{
+                                          "type":"string",
+                                          "title":"ID",
+                                          "description":"Column ID for matching with data."
+                                       },
+                                       "title":{
+                                          "type":"string",
+                                          "title":"Title",
+                                          "description":"Column title."
+                                       },
+                                       "flex":{
+                                          "type":"number",
+                                          "title":"Flex",
+                                          "description":"The length of the column, relative to the rest of the columns.",
+                                          "default":1
+                                       },
+                                       "align":{
+                                          "title":"Align",
+                                          "description":"Align of text in cells.",
+                                          "default":"left",
+                                          "enum":[
+                                             "left",
+                                             "center",
+                                             "right"
+                                          ]
+                                       },
+                                       "style":{
+                                          "title":"Font style",
+                                          "description":"Font style of text in cells.",
+                                          "default":"normal",
+                                          "enum":[
+                                             "normal",
+                                             "bold"
+                                          ]
+                                       },
+                                       "type":{
+                                          "minLength":1,
+                                          "title":"Type",
+                                          "description":"Type of column. Dates format's value to date or time, indicator creates color point. See examples.",
+                                          "enum":[
+                                             "none",
+                                             "date",
+                                             "indicator"
+                                          ]
+                                       },
+                                       "format":{
+                                          "type":"string",
+                                          "title":"Datetime format",
+                                          "description":"Format for representing dates in date column. See examples."
+                                       },
+                                       "calc":{
+                                          "type":"string",
+                                          "title":"Expression",
+                                          "description":"Expression to calculate column value from data. See examples."
+                                       },
+                                       "color":{
+                                          "type":"string",
+                                          "title":"Color",
+                                          "description":"Color of text in column. Build-in pallete: active, success, warning, danger, fuzy, neutral, info. Or HEX formats #RRGGBB or #AARRGGBB."
+                                       },
+                                       "colors":{
+                                          "type":"object",
+                                          "title":"Dynamic colors",
+                                          "description":"Dictionary, where key is color and value is expression, when to use color for text in column. See examples.",
+                                          "additionalProperties":{
+                                             "type":"string",
+                                             "title":"Color.",
+                                             "description":"Color of text in column. See examples."
+                                          }
+                                       }
+                                    },
+                                    "required":[
+                                       "id"
+                                    ]
+                                 }
+                              },
+                              "data":{
+                                 "type":"array",
+                                 "uniqueItems":false,
+                                 "title":"Data for table",
+                                 "description":"Array of objects as data to show.",
+                                 "items":{
+                                    "type":"object",
+                                    "title":"8 schema.",
+                                    "description":"Object, where properties match Column ID and values are shown in cell. See examples."
+                                 }
+                              },
+                              "pulse":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Pulsate",
+                                 "description":"Expression, when to pulsate widget (e.g. in case of alert; 'value > 5' or 'true'...). See examples."
+                              },
+                              "background":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Background",
+                                 "description":"Background color of widget in HEX format #RRGGBB."
+                              }
+                           },
+                           "required":[
+                              "columns"
+                           ]
+                        },
+                        "minitable":{
+                           "type":"object",
+                           "title":"Table widget configuration.",
+                           "description":"Object with properties for Table widget type.",
+                           "properties":{
+                              "title":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Title",
+                                 "description":"Chart title"
+                              },
+                              "columns":{
+                                 "type":"array",
+                                 "title":"Table Columns",
+                                 "description":"Columns definition.",
+                                 "items":{
+                                    "type":"object",
+                                    "title":"Column",
+                                    "description":"Column definition.",
+                                    "properties":{
+                                       "id":{
+                                          "type":"string",
+                                          "title":"ID",
+                                          "description":"Column ID for matching with data."
+                                       },
+                                       "title":{
+                                          "type":"string",
+                                          "title":"Title",
+                                          "description":"Column title."
+                                       },
+                                       "flex":{
+                                          "type":"number",
+                                          "title":"Flex",
+                                          "description":"The length of the column, relative to the rest of the columns.",
+                                          "default":1
+                                       },
+                                       "align":{
+                                          "title":"Align",
+                                          "description":"Align of text in cells.",
+                                          "default":"left",
+                                          "enum":[
+                                             "left",
+                                             "center",
+                                             "right"
+                                          ]
+                                       },
+                                       "style":{
+                                          "title":"Font style",
+                                          "description":"Font style of text in cells.",
+                                          "default":"normal",
+                                          "enum":[
+                                             "normal",
+                                             "bold"
+                                          ]
+                                       },
+                                       "type":{
+                                          "title":"Type",
+                                          "description":"Type of column. Dates format's value to date or time, indicator creates color point. See examples.",
+                                          "default":"none",
+                                          "enum":[
+                                             "none",
+                                             "date",
+                                             "indicator"
+                                          ]
+                                       },
+                                       "format":{
+                                          "type":"string",
+                                          "title":"Datetime format",
+                                          "description":"Format for representing dates in date column. See examples."
+                                       },
+                                       "calc":{
+                                          "type":"string",
+                                          "title":"Expression",
+                                          "description":"Expression to calculate column value from data. See examples."
+                                       },
+                                       "color":{
+                                          "type":"string",
+                                          "title":"Color",
+                                          "description":"Color of text in column. Build-in pallete: active, success, warning, danger, fuzy, neutral, info. Or HEX formats #RRGGBB or #AARRGGBB."
+                                       },
+                                       "colors":{
+                                          "type":"object",
+                                          "title":"Dynamic colors",
+                                          "description":"Dictionary, where key is color and value is expression, when to use color for text in column. See examples.",
+                                          "additionalProperties":{
+                                             "type":"string",
+                                             "title":"Color.",
+                                             "description":"Color of text in column. See examples."
+                                          }
+                                       }
+                                    },
+                                    "required":[
+                                       "id"
+                                    ]
+                                 }
+                              },
+                              "data":{
+                                 "type":"array",
+                                 "uniqueItems":false,
+                                 "title":"Data for table",
+                                 "description":"Array of objects as data to show.",
+                                 "items":{
+                                    "type":"object",
+                                    "title":"8 schema.",
+                                    "description":"Object, where properties match Column ID and values are shown in cell. See examples."
+                                 }
+                              },
+                              "pulse":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Pulsate",
+                                 "description":"Expression, when to pulsate widget (e.g. in case of alert; 'value > 5' or 'true'...). See examples."
+                              },
+                              "background":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Background",
+                                 "description":"Background color of widget in HEX format #RRGGBB."
+                              }
+                           },
+                           "required":[
+                              "columns"
+                           ]
+                        },
+                        "chart":{
+                           "type":"object",
+                           "title":"Chart widget configuration.",
+                           "description":"Object with properties for Chart widget type.",
+                           "properties":{
+                              "title":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Title",
+                                 "description":"Chart title displayed above chart"
+                              },
+                              "series":{
+                                 "type":"array",
+                                 "title":"Chart series",
+                                 "description":"Series definition.",
+                                 "items":{
+                                    "type":"object",
+                                    "title":"Chart serie",
+                                    "description":"Serie definition",
+                                    "properties":{
+                                       "id":{
+                                          "type":"string",
+                                          "title":"ID",
+                                          "description":"Serie ID for matching with data."
+                                       },
+                                       "name":{
+                                          "type":"string",
+                                          "title":"Name",
+                                          "description":"Serie name to show in legend and axis."
+                                       },
+                                       "type":{
+                                          "title":"Type",
+                                          "description":"Type of chart.",
+                                          "default":"line",
+                                          "enum":[
+                                             "line",
+                                             "bar"
+                                          ]
+                                       },
+                                       "color":{
+                                          "type":"string",
+                                          "title":"Color",
+                                          "description":"Color of serie. Build-in pallete: active, success, warning, danger, fuzy, neutral, info. Or HEX formats #RRGGBB or #AARRGGBB."
+                                       },
+                                       "axis":{
+                                          "title":"Axis",
+                                          "description":"Which axis to use with serie.",
+                                          "default":"left",
+                                          "enum":[
+                                             "left",
+                                             "right"
+                                          ]
+                                       },
+                                       "data":{
+                                          "type":"array",
+                                          "title":"Alternative data",
+                                          "description":"Array of objects as data to show, alternative. See examples.",
+                                          "items":{
+                                             "type":"object",
+                                             "title":"Data object",
+                                             "description":"Data object",
+                                             "properties":{
+                                                "x":{
+                                                   "title":"X value",
+                                                   "description":"String or number on X axis."
+                                                },
+                                                "y":{
+                                                   "type":"number",
+                                                   "title":"Y value",
+                                                   "description":"Value on X axis."
+                                                }
+                                             },
+                                             "required":[
+                                                "x",
+                                                "y"
+                                             ]
+                                          }
+                                       }
+                                    }
+                                 }
+                              },
+                              "data":{
+                                 "type":"array",
+                                 "uniqueItems":false,
+                                 "title":"Data for chart",
+                                 "description":"Array of objects as data to show.",
+                                 "items":{
+                                    "type":"object",
+                                    "title":"8 schema.",
+                                    "description":"Object, where properties match Serie ID. See examples."
+                                 }
+                              },
+                              "legend":{
+                                 "type":"boolean",
+                                 "title":"Chart legend",
+                                 "description":"Indicates, whether to show legend on the bottom of the chart.",
+                                 "default":false
+                              },
+                              "axes":{
+                                 "type":"boolean",
+                                 "title":"Chart axes",
+                                 "description":"Indicates, whether to show axes.",
+                                 "default":false
+                              },
+                              "axisLabels":{
+                                 "type":"boolean",
+                                 "title":"Chart axes labels",
+                                 "description":"Indicates, whether to show labels of values on axes.",
+                                 "default":false
+                              },
+                              "valueLabels":{
+                                 "type":"boolean",
+                                 "title":"Chart value labels",
+                                 "description":"Indicates, whether to show labels of values in chart.",
+                                 "default":false
+                              },
+                              "pulse":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Pulsate",
+                                 "description":"Expression, when to pulsate widget (e.g. in case of alert; 'value > 5' or 'true'...). See examples."
+                              },
+                              "background":{
+                                 "type":[
+                                    "string",
+                                    "null"
+                                 ],
+                                 "title":"Background",
+                                 "description":"Background color of widget in HEX format #RRGGBB."
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            },
+            "required":[
+               "name",
+               "widgets"
+            ]
+         }
+      }
+   },
+   "required":[
+      "dashboards"
+   ]
+}
