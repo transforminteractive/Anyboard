@@ -25,7 +25,7 @@
             "refresh":5
          },
          "actions":{
-            "sound":"sound = true",
+            "sound":"sound = false",
             "invoke":"switch = true",
             "invokeTime":"0 0 12 1/1 * ? *"
          },
